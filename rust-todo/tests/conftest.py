@@ -13,7 +13,7 @@ SCREENSHOT_DIR = PROJECT_DIR / "screenshots"
 
 @pytest.fixture(scope="session")
 def app_binary() -> Path:
-    """Builds the application once per test session, with system testing enabled."""
+    """Builds the application with system testing once per session, and returns the binary's path."""
     env = os.environ.copy()
     # The Slint compiler must emit debug info for element ids to be visible to the tests.
     env["SLINT_EMIT_DEBUG_INFO"] = "1"
@@ -29,15 +29,15 @@ def app_binary() -> Path:
 
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
+    """Records the outcome of each test, for the `window` fixture."""
     report = yield
-    # Make the outcome of each phase available to fixtures, see `window` below.
     setattr(item, f"report_{report.when}", report)
     return report
 
 
 @pytest.fixture
 def app(app_binary: Path) -> Iterator[slint_testing.Application]:
-    """Launches a fresh instance of the application for each test."""
+    """Launches a fresh instance of the application for each test, and terminates it afterwards."""
     with slint_testing.Application([str(app_binary)]) as app:
         yield app
 
@@ -46,6 +46,7 @@ def app(app_binary: Path) -> Iterator[slint_testing.Application]:
 def window(
     app: slint_testing.Application, request: pytest.FixtureRequest
 ) -> Iterator[slint_testing.Window]:
+    """Provides the application's window, and saves a screenshot in `screenshots/` if the test fails."""
     window = app.first_window
     assert window is not None
     yield window

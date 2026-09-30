@@ -21,15 +21,15 @@ def app_command() -> list[str]:
 
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
+    """Records the outcome of each test, for the `window` fixture."""
     report = yield
-    # Make the outcome of each phase available to fixtures, see `window` below.
     setattr(item, f"report_{report.when}", report)
     return report
 
 
 @pytest.fixture
 def app(app_command: list[str]) -> Iterator[slint_testing.Application]:
-    """Launches a fresh instance of the application for each test."""
+    """Launches a fresh instance of the application for each test, and terminates it afterwards."""
     with slint_testing.Application(app_command) as app:
         yield app
 
@@ -38,6 +38,7 @@ def app(app_command: list[str]) -> Iterator[slint_testing.Application]:
 def window(
     app: slint_testing.Application, request: pytest.FixtureRequest
 ) -> Iterator[slint_testing.Window]:
+    """Provides the application's window, and saves a screenshot in `screenshots/` if the test fails."""
     window = app.first_window
     assert window is not None
     yield window
