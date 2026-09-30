@@ -1,0 +1,15 @@
+[package]
+name = "todo"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[features]
+# Enabled only when building for the UI tests; see tests/conftest.py.
+system-testing = ["slint/system-testing"]
+
+[dependencies]
+slint = "1.17"
+
+[build-dependencies]
+slint-build = "1.17"

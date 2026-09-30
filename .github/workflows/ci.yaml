@@ -1,0 +1,102 @@
+name: CI
+
+on:
+    # The examples don't lock their dependencies, so a weekly run catches
+    # breakage from new releases of Slint or slint-testing.
+    schedule:
+        - cron: "0 6 * * 1"
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+
+env:
+    # uv reads the credentials for the `slint-private` index from these variables.
+    UV_INDEX_SLINT_PRIVATE_USERNAME: __token__
+    UV_INDEX_SLINT_PRIVATE_PASSWORD: ${{ secrets.SLINT_TESTING_TOKEN }}
+    # Secrets aren't available in step conditions, so expose whether the token is set.
+    HAS_TOKEN: ${{ secrets.SLINT_TESTING_TOKEN != '' }}
+
+jobs:
+    test:
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-24.04, macos-15, windows-2025]
+                example: [rust-todo, cpp-temperature-converter, node-signup, python-tip-calculator]
+
+        name: ${{ matrix.example }} (${{ matrix.os }})
+        runs-on: ${{ matrix.os }}
+        defaults:
+            run:
+                working-directory: ${{ matrix.example }}
+
+        steps:
+            - uses: actions/checkout@v7
+            - name: Skip without access token
+              if: env.HAS_TOKEN != 'true'
+              run: echo "::notice::SLINT_TESTING_TOKEN is not set, for example in a pull request from a fork. Skipping the tests."
+            - name: Install uv
+              if: env.HAS_TOKEN == 'true'
+              uses: astral-sh/setup-uv@v7
+              with:
+                  enable-cache: true
+            - name: Install Rust
+              if: env.HAS_TOKEN == 'true' && (matrix.example == 'rust-todo' || matrix.example == 'cpp-temperature-converter')
+              uses: dtolnay/rust-toolchain@stable
+            - name: Cache Rust build
+              if: env.HAS_TOKEN == 'true' && matrix.example == 'rust-todo'
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: rust-todo
+            - name: Install Node.js
+              if: env.HAS_TOKEN == 'true' && matrix.example == 'node-signup'
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+            - name: Install Linux dependencies
+              if: env.HAS_TOKEN == 'true' && runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install libfontconfig-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libxkbcommon-x11-dev
+                  # The prebuilt Slint binaries for Node.js and Python include the linuxkms backend.
+                  sudo apt-get install libinput10 libgbm1
+            - name: Set up headless display
+              if: env.HAS_TOKEN == 'true'
+              uses: pyvista/setup-headless-display-action@v5
+            - name: Run tests
+              if: env.HAS_TOKEN == 'true'
+              run: uv run pytest -v
+            - name: Upload screenshots of failed tests
+              if: failure()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: screenshots-${{ matrix.example }}-${{ matrix.os }}
+                  path: ${{ matrix.example }}/screenshots/
+                  if-no-files-found: ignore
+
+    lint:
+        runs-on: ubuntu-24.04
+        steps:
+            - uses: actions/checkout@v7
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  enable-cache: true
+            - name: Check formatting
+              run: uv tool run ruff@0.16.0 format --check
+            - name: Lint
+              run: uv tool run ruff@0.16.0 check
+            - name: Check types
+              if: env.HAS_TOKEN == 'true'
+              run: |
+                  for example in rust-todo cpp-temperature-converter node-signup python-tip-calculator; do
+                      (cd $example && uv run ty check tests)
+                  done
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  components: rustfmt
+            - name: Check Rust formatting
+              working-directory: rust-todo
+              run: cargo fmt --check

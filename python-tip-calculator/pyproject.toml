@@ -1,0 +1,33 @@
+[project]
+name = "tip-calculator"
+version = "0.1.0"
+description = "A tip calculator written with Slint for Python, along with UI tests"
+requires-python = ">=3.12"
+dependencies = [
+    "slint>=1.18.1b1",
+]
+
+[dependency-groups]
+dev = [
+    # The dev extra adds slint-dev, the variant of Slint with system testing support. slint loads it
+    # instead of the regular binary when SLINT_TEST_SERVER is set.
+    "slint[dev]>=1.18.1b1",
+    "pytest>=8.3.5",
+    "slint-testing>=0.4",
+    "ty>=0.0.1a28",
+]
+
+[tool.uv]
+package = false
+
+# slint-testing is distributed through Slint's package index, everything else comes from PyPI.
+[[tool.uv.index]]
+name = "slint-private"
+url = "https://testing.slint.dev/simple/"
+explicit = true
+
+[tool.uv.sources]
+slint-testing = { index = "slint-private" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

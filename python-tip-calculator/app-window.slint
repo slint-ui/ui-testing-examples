@@ -1,0 +1,88 @@
+import { GridBox, LineEdit, SpinBox } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    title: "Tip Calculator";
+    preferred-width: 360px;
+
+    in-out property <string> bill <=> bill-input.text;
+    in-out property <int> tip-percent <=> tip-input.value;
+    in-out property <int> people <=> people-input.value;
+    in property <string> tip-amount;
+    in property <string> total-per-person;
+
+    // Called when the user accepts a new bill amount with Return, or changes a spin box.
+    callback recalculate();
+
+    GridBox {
+        Row {
+            Text {
+                text: "Bill";
+                vertical-alignment: center;
+            }
+
+            bill-input := LineEdit {
+                placeholder-text: "0.00";
+                input-type: decimal;
+                accepted => {
+                    root.recalculate();
+                }
+            }
+        }
+
+        Row {
+            Text {
+                text: "Tip (%)";
+                vertical-alignment: center;
+            }
+
+            tip-input := SpinBox {
+                minimum: 0;
+                maximum: 30;
+                value: 15;
+                edited => {
+                    root.recalculate();
+                }
+            }
+        }
+
+        Row {
+            Text {
+                text: "People";
+                vertical-alignment: center;
+            }
+
+            people-input := SpinBox {
+                minimum: 1;
+                maximum: 20;
+                value: 1;
+                edited => {
+                    root.recalculate();
+                }
+            }
+        }
+
+        Row {
+            Text {
+                text: "Tip";
+            }
+
+            tip-label := Text {
+                text: root.tip-amount;
+                horizontal-alignment: right;
+            }
+        }
+
+        Row {
+            Text {
+                text: "Total per person";
+                font-weight: 700;
+            }
+
+            total-label := Text {
+                text: root.total-per-person;
+                horizontal-alignment: right;
+                font-weight: 700;
+            }
+        }
+    }
+}

@@ -1,0 +1,57 @@
+import { Button, GridBox, LineEdit } from "std-widgets.slint";
+
+export component App inherits Window {
+    title: "Temperature Converter";
+    preferred-width: 360px;
+
+    in property <string> fahrenheit;
+    in property <string> error;
+
+    callback convert(celsius: string);
+
+    GridBox {
+        Row {
+            Text {
+                text: "Celsius";
+                vertical-alignment: center;
+            }
+
+            celsius-input := LineEdit {
+                placeholder-text: "e.g. 21.5";
+                accepted => {
+                    root.convert(self.text);
+                }
+            }
+        }
+
+        Row {
+            Text {
+                text: "Fahrenheit";
+                vertical-alignment: center;
+            }
+
+            fahrenheit-input := LineEdit {
+                text: root.fahrenheit;
+                read-only: true;
+            }
+        }
+
+        Row {
+            convert-button := Button {
+                colspan: 2;
+                text: "Convert";
+                clicked => {
+                    root.convert(celsius-input.text);
+                }
+            }
+        }
+
+        Row {
+            error-label := Text {
+                colspan: 2;
+                text: root.error;
+                color: #d33;
+            }
+        }
+    }
+}

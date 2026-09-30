@@ -1,0 +1,63 @@
+import { Button, CheckBox, LineEdit, VerticalBox } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    title: "Sign Up";
+    preferred-width: 360px;
+
+    in property <string> error;
+    in property <string> signed-up-email;
+
+    callback sign-up(email: string, password: string);
+    callback quit();
+
+    // The form and the welcome screen replace each other, and the layout sizes the window to fit.
+    VerticalLayout {
+        if root.signed-up-email == "": VerticalBox {
+            alignment: start;
+
+            email-input := LineEdit {
+                placeholder-text: "Email";
+            }
+
+            password-input := LineEdit {
+                placeholder-text: "Password";
+                input-type: password;
+            }
+
+            accept-terms := CheckBox {
+                text: "I accept the terms of service";
+            }
+
+            sign-up-button := Button {
+                text: "Sign up";
+                primary: true;
+                enabled: accept-terms.checked;
+                clicked => {
+                    root.sign-up(email-input.text, password-input.text);
+                }
+            }
+
+            error-label := Text {
+                text: root.error;
+                color: #d33;
+                wrap: word-wrap;
+            }
+        }
+
+        if root.signed-up-email != "": VerticalBox {
+            alignment: start;
+
+            welcome-label := Text {
+                text: "Welcome, \{root.signed-up-email}!";
+                font-size: 18px;
+            }
+
+            quit-button := Button {
+                text: "Quit";
+                clicked => {
+                    root.quit();
+                }
+            }
+        }
+    }
+}

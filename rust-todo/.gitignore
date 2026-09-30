@@ -1,0 +1,6 @@
+/target/
+/screenshots/
+/.venv/
+__pycache__/
+/uv.lock
+/Cargo.lock

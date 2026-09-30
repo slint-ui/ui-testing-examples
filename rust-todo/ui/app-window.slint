@@ -1,0 +1,74 @@
+import { Button, CheckBox, HorizontalBox, LineEdit, ListView, VerticalBox } from "std-widgets.slint";
+
+export struct TodoItem {
+    title: string,
+    done: bool,
+}
+
+export component AppWindow inherits Window {
+    title: "To-Do";
+    preferred-width: 400px;
+    preferred-height: 480px;
+
+    in property <[TodoItem]> todos;
+    in property <int> remaining;
+    in property <bool> has-completed;
+
+    callback add-todo(title: string);
+    callback todo-toggled(index: int, done: bool);
+    callback clear-completed();
+
+    function add() {
+        root.add-todo(new-todo-input.text);
+        new-todo-input.text = "";
+    }
+
+    VerticalBox {
+        HorizontalBox {
+            padding: 0;
+            new-todo-input := LineEdit {
+                placeholder-text: "What needs to be done?";
+                accepted => {
+                    if self.text != "" {
+                        root.add();
+                    }
+                }
+            }
+
+            add-button := Button {
+                text: "Add";
+                enabled: new-todo-input.text != "";
+                clicked => {
+                    root.add();
+                }
+            }
+        }
+
+        ListView {
+            for todo[index] in root.todos: todo-checkbox := CheckBox {
+                text: todo.title;
+                checked: todo.done;
+                toggled => {
+                    root.todo-toggled(index, self.checked);
+                }
+            }
+        }
+
+        HorizontalBox {
+            padding: 0;
+            remaining-label := Text {
+                text: root.remaining == 1 ? "1 item left" : "\{root.remaining} items left";
+                vertical-alignment: center;
+                horizontal-stretch: 1;
+            }
+
+            clear-button := Button {
+                text: "Clear completed";
+                enabled: root.has-completed;
+                clicked => {
+                    root.clear-completed();
+                }
+            }
+        }
+    }
+}

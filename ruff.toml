@@ -1,0 +1,2 @@
+# Shared by all examples; CI runs `ruff check` and `ruff format --check` from the repository root.
+target-version = "py310"

@@ -1,0 +1,15 @@
+{
+  "name": "signup",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "slint-ui": "^1.18.1"
+  },
+  "devDependencies": {
+    "slint-ui-dev": "^1.18.1"
+  }
+}
