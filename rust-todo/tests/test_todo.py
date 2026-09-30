@@ -53,12 +53,12 @@ def test_add_todo(window: slint_testing.Window):
 def test_toggle_todo_with_mouse(window: slint_testing.Window):
     remaining_label = find(window, "remaining-label")
     # Look the item up by its label rather than by its position in the list.
-    item = (
+    checkboxes = (
         window.query_descendants()
         .match_accessible_role(AccessibleRole.Checkbox)
-        .match_accessible_label("Write a UI test")
-        .find_one()
+        .find_all()
     )
+    [item] = [item for item in checkboxes if item.accessible_label == "Write a UI test"]
 
     item.single_click(PointerEventButton.Left)
     assert item.accessible_checked

@@ -15,8 +15,8 @@ button to clear completed items.
 
 ## What the tests show
 
-- Finding elements by id with `match_id("AppWindow::add-button")`, and by accessible role and label with
-  `match_accessible_role(...)` and `match_accessible_label(...)`.
+- Finding elements by id with `match_id("AppWindow::add-button")`, and by accessible role with
+  `match_accessible_role(...)`, then picking one of them by its `accessible_label`.
 - Finding all rows of a list with `find_all()`.
 - Entering text by setting `accessible_value`, and clicking buttons with `invoke_accessible_default_action()`.
 - Clicking with the mouse through `single_click()`.
